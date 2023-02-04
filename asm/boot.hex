@@ -1,0 +1,31 @@
+     1                                  [bits 16]    ; use 16 bits
+     2                                  
+     3                                  init:
+     4                                      CTD            ; set SD flag of EFLAGS to 0 to make string operatons increment (lodsb)
+     4          ******************       warning: label alone on a line without a colon might be in error [-w+label-orphan]
+     5 00000000 BE[2300]                    mov si, msg    ; loads the address of "msg" into SI register
+     6 00000003 B40E                        mov ah, 0x0e   ; sets AH to 0xe (function teletype)
+     7                                  print_char:
+     8 00000005 AC                          lodsb          ; loads the current byte from SI into AL and increments the address in SI
+     9 00000006 3C00                        cmp al, 0      ; compares AL to zero
+    10 00000008 7404                        je done        ; if AL == 0, jump to "done"
+    11 0000000A CD10                        int 0x10       ; print to screen using function 0xe of interrupt 0x10
+    12 0000000C EBF7                        jmp print_char ; repeat with next byte
+    13                                  done:
+    14 0000000E B048                        mov al, 'H'
+    15 00000010 CD10                        int 0x10
+    16 00000012 B065                        mov al, 'e'
+    17 00000014 CD10                        int 0x10
+    18 00000016 B06C                        mov al, 'l'
+    19 00000018 CD10                        int 0x10
+    20 0000001A B06C                        mov al, 'l'
+    21 0000001C CD10                        int 0x10
+    22 0000001E B06F                        mov al, 'o'
+    23 00000020 CD10                        int 0x10
+    24                                  
+    25 00000022 F4                          hlt            ; stop execution
+    26                                  
+    27 00000023 48656C6C6F00            msg: db "Hello", 0 ; we need to explicitely put the zero byte here
+    28                                  
+    29 00000029 00<rep 1D5h>            times 510-($-$$) db 0           ; fill the output file with zeroes until 510 bytes are full
+    30 000001FE 55AA                    dw 0xaa55                       ; magic number that tells the BIOS this is bootable

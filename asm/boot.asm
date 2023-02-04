@@ -1,46 +1,29 @@
-[bits 16]
+[bits 16]    ; use 16 bits
 
-extern _start
-extern SECOND_STAGE_LENGTH
+init:
+    mov si, msg    ; loads the address of "msg" into SI register
+    mov ah, 0x0e   ; sets AH to 0xe (function teletype)
+print_char:
+    lodsb          ; loads the current byte from SI into AL and increments the address in SI
+    cmp al, 0      ; compares AL to zero
+    je done        ; if AL == 0, jump to "done"
+    int 0x10       ; print to screen using function 0xe of interrupt 0x10
+    jmp print_char ; repeat with next byte
+done:
+    mov al, 'H'
+    int 0x10
+    mov al, 'e'
+    int 0x10
+    mov al, 'l'
+    int 0x10
+    mov al, 'l'
+    int 0x10
+    mov al, 'o'
+    int 0x10
 
-global _boot
+    hlt            ; stop execution
 
-section .boot.text
-_boot:
-    cli
-    xor ax, ax
-    mov ds, ax
-    mov ss, ax
-    mov ax, 0x9000
-    mov sp, ax
-    sti
+msg: db "Hello", 0 ; we need to explicitely put the zero byte here
 
-	call load_second_stage
-	jmp enter_protected
-
-
-[bits 32]
-
-boot_pm:
-    call check_cpuid
-    jmp enter_long
-
-
-[bits 64]
-
-boot_lm:
-    ; mov byte [0xb8000], "l"
-    ; mov byte [0xb8002], "m"
-
-    jmp _start
-
-%include "load_second_stage.asm"
-%include "gdt.asm"
-%include "enter_protected.asm"
-%include "protected_print.asm"
-%include "debug.asm"
-%include "cpuid.asm"
-%include "enter_long.asm"
-
-times 510 - ($-$$) db 0
-dw 0xaa55  ; 0x55AA, its little endian
+times 510-($-$$) db 0           ; fill the output file with zeroes until 510 bytes are full
+dw 0xaa55                       ; magic number that tells the BIOS this is bootable
