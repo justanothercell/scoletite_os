@@ -6,7 +6,7 @@ SECTIONS {
 		*(.boot.text);
     }
 
-    .text 0x7e00 : {
+    .text 0x8000 : { /* 0x7e00 */
         *(.text*);
     }
     .data : {

@@ -2,7 +2,9 @@
 A x86-64 Kernel/OS
 
 ## Build & Run
-see [build.bat](build.bat)
+see [run.bat](run.bat)
+
+most if not all command should be a 1:1 replacement for unix systems
 
 ## Tools / Setup Steps
 - [QEMU](https://www.qemu.org) VM
