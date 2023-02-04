@@ -19,7 +19,6 @@ _boot:
 
 
 [bits 32]
-
 boot_pm:
     call check_cpuid
     jmp enter_long
@@ -29,7 +28,8 @@ boot_pm:
 
 boot_lm:
     ;jmp _start
-    call print
+    mov esi, msg_booted
+    call protected_print
     hlt
 
 %include "load_second_stage.asm"
@@ -42,3 +42,5 @@ boot_lm:
 
 times 510 - ($-$$) db 0
 dw 0xaa55  ; 0x55AA, its little endian
+
+msg_booted: db "booted", 0

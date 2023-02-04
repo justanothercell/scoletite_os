@@ -1,4 +1,4 @@
-bits 16
+[bits 16]
 
 ; assumes string beggining in %si
 print:
