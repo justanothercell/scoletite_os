@@ -1,8 +1,7 @@
 [bits 16]
 
-extern _start
-extern SECOND_STAGE_LENGTH
-
+; extern _start
+; extern SECOND_STAGE_LENGTH
 global _boot
 
 section .boot.text
