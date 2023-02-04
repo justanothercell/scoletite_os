@@ -1,7 +1,7 @@
 [bits 16]
 
 ; extern _start
-; extern SECOND_STAGE_LENGTH
+extern SECOND_STAGE_LENGTH
 global _boot
 
 section .boot.text
@@ -28,10 +28,9 @@ boot_pm:
 [bits 64]
 
 boot_lm:
-    ; mov byte [0xb8000], "l"
-    ; mov byte [0xb8002], "m"
-
-    jmp _start
+    ;jmp _start
+    call print
+    hlt
 
 %include "load_second_stage.asm"
 %include "gdt.asm"

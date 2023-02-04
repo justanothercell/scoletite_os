@@ -1,0 +1,329 @@
+     1                                  [bits 16]
+     2                                  
+     3                                  ; extern _start
+     4                                  extern SECOND_STAGE_LENGTH
+     5                                  global _boot
+     6                                  
+     7                                  section .boot.text
+     8                                  _boot:
+     9 00000000 FA                          cli
+    10 00000001 31C0                        xor ax, ax
+    11 00000003 8ED8                        mov ds, ax
+    12 00000005 8ED0                        mov ss, ax
+    13 00000007 B80090                      mov ax, 0x9000
+    14 0000000A 89C4                        mov sp, ax
+    15 0000000C FB                          sti
+    16                                  
+    17 0000000D E80D00                  	call load_second_stage
+    18 00000010 EB53                    	jmp enter_protected
+    19                                  
+    20                                  
+    21                                  [bits 32]
+    22                                  
+    23                                  boot_pm:
+    24 00000012 E8AF000000                  call check_cpuid
+    25 00000017 E9E6000000                  jmp enter_long
+    26                                  
+    27                                  
+    28                                  [bits 64]
+    29                                  
+    30                                  boot_lm:
+    31                                      ; mov byte [0xb8000], "l"
+    32                                      ; mov byte [0xb8002], "m"
+    33                                  
+    34                                      ;jmp _start
+    35 0000001C F4                          hlt
+    36                                  
+    37                                  %include "load_second_stage.asm"
+    38                              <1> [bits 16]
+    39                              <1> ; buffer at 0x7E00
+    40                              <1> load_second_stage:
+    41 0000001D 60                  <1> 	pusha
+    42 0000001E FA                  <1>     cli
+    43 0000001F B8E007              <1>     mov ax, 0x7e0
+    44 00000022 8EC0                <1>     mov es, ax
+    45 00000024 FB                  <1>     sti
+    46                              <1> 
+    47 00000025 BB0000              <1>     mov bx, 0x0
+    48 00000028 B402                <1>     mov ah, 0x2 ; int 0x13, ah = 0x2
+    49 0000002A B0[00]              <1>     mov al, SECOND_STAGE_LENGTH ; n of sectors to read
+    50 0000002C 50                  <1>     push ax
+    51 0000002D B500                <1>     mov ch, 0x0 ; cylinder
+    52 0000002F B600                <1>     mov dh, 0x0 ; head
+    53 00000031 B102                <1>     mov cl, 0x2 ; sector right after bootloader
+    54                              <1>     ; buffer address es:bx
+    55 00000033 BB0000              <1>     mov bx, 0x0
+    56 00000036 CD13                <1>     int 0x13
+    57                              <1> 
+    58 00000038 5B                  <1>     pop bx
+    59                              <1> 
+    60 00000039 38D8                <1>     cmp al, bl
+    61 0000003B 7502                <1>     jne load_second_error
+    62                              <1>         
+    63 0000003D 61                  <1>     popa
+    64 0000003E C3                  <1>     ret
+    65                              <1> 
+    66                              <1>     load_second_error:
+    67 0000003F B40E                <1>         mov ah, 0xe
+    68 00000041 B065                <1>         mov al, "e"
+    69 00000043 CD10                <1>         int 0x10
+    70 00000045 EBFE                <1>         jmp $
+    38                                  %include "gdt.asm"
+    39                              <1> [bits 16]
+    40                              <1> gdt:
+    41                              <1> 
+    42                              <1> gdt_null:
+    43 00000047 0000000000000000    <1>     dq 0x0
+    44                              <1> 
+    45                              <1> gdt_code:
+    46 0000004F FFFF                <1>     dw 0xFFFF ; length
+    47 00000051 0000                <1>     dw 0x0 ; base 0-15
+    48 00000053 00                  <1>     db 0x0 ; base 16-23
+    49                              <1>     ; 7 - present flag
+    50                              <1>     ; 5-6 - required privelige
+    51                              <1>     ; 4 - is either code or data?
+    52                              <1>     ; 3 - code or data?
+    53                              <1>     ; 2 - is lower privelige allowed to read/exec?
+    54                              <1>     ; 1 - read or write?
+    55                              <1>     ; 0 - access flag
+    56 00000054 9A                  <1>     db 0b1001_1010
+    57                              <1> 
+    58                              <1>     ; 7 - granularity (multiplies segment limit by 4kB)
+    59                              <1>     ; 6 - 16 bit or 32 bit?
+    60                              <1>     ; 5 - required by intel to be set to 0
+    61                              <1>     ; 4 - free to use
+    62                              <1>     ; 0-3 - last bits of segment limit
+    63 00000055 CF                  <1>     db 0b1100_1111
+    64                              <1> 
+    65 00000056 00                  <1>     db 0x0 ; base 24-31
+    66                              <1>     
+    67                              <1> gdt_data:
+    68 00000057 FFFF                <1>     dw 0xFFFF ; size
+    69 00000059 0000                <1>     dw 0x0 ; base 0-15
+    70 0000005B 00                  <1>     db 0x0 ; base 16-23
+    71                              <1>     ; 7 - present flag
+    72                              <1>     ; 5-6 - required privelige
+    73                              <1>     ; 4 - is either code or data?
+    74                              <1>     ; 3 - code or data?
+    75                              <1>     ; 2 - is lower privelige allowed to read/exec?
+    76                              <1>     ; 1 - read or write?
+    77                              <1>     ; 0 - access flag
+    78 0000005C 92                  <1>     db 0b1001_0010
+    79                              <1> 
+    80                              <1>     ; 7 - granularity (multiplies segment limit by 4kB)
+    81                              <1>     ; 6 - 16 bit or 32 bit?
+    82                              <1>     ; 5 - required by intel to be set to 0
+    83                              <1>     ; 4 - free to use
+    84                              <1>     ; 0-3 - last bits of segment limit
+    85 0000005D CF                  <1>     db 0b1100_1111
+    86                              <1> 
+    87 0000005E 00                  <1>     db 0x0 ; base 24-31
+    88                              <1> gdt_end:
+    89                              <1> 
+    90                              <1> gdt_desc:
+    91 0000005F 1700                <1>     dw gdt_end - gdt - 1
+    92 00000061 [47000000]          <1>     dd gdt
+    93                              <1> 
+    94                              <1> CODE_SEG equ gdt_code - gdt
+    95                              <1> DATA_SEG equ gdt_data - gdt
+    39                                  %include "enter_protected.asm"
+    40                              <1> [bits 16]
+    41                              <1> enter_protected:
+    42 00000065 FA                  <1>     cli
+    43                              <1> 
+    44                              <1>     ; load global descriptor table
+    45 00000066 0F0116[5F00]        <1>     lgdt [gdt_desc]
+    46                              <1> 
+    47                              <1>     ; set protected mode flag
+    48 0000006B 0F20C0              <1>     mov eax, cr0
+    49 0000006E 6683C801            <1>     or eax, 0x1
+    50 00000072 0F22C0              <1>     mov cr0, eax
+    51                              <1> 
+    52 00000075 EA[7A00]0800        <1>     jmp CODE_SEG:init_protected
+    53                              <1> 
+    54                              <1> [bits 32]
+    55                              <1> init_protected:
+    56                              <1>     ; make sure segment register have right values
+    57 0000007A 66B81000            <1>     mov ax, DATA_SEG
+    58 0000007E 8ED8                <1>     mov ds, ax
+    59 00000080 8ED0                <1>     mov ss, ax
+    60 00000082 8EC0                <1>     mov es, ax
+    61 00000084 8EE0                <1>     mov fs, ax
+    62 00000086 8EE8                <1>     mov gs, ax
+    63                              <1> 
+    64                              <1>     ; update the stack right at the top of the free space
+    65 00000088 BD00000900          <1>     mov ebp, 0x90000
+    66 0000008D 89EC                <1>     mov esp, ebp
+    67                              <1> 
+    68 0000008F EB81                <1>     jmp boot_pm
+    40                                  %include "protected_print.asm"
+    41                              <1> [bits 32]
+    42                              <1> ; assumes string beggining in %esi
+    43                              <1> protected_print:
+    44 00000091 60                  <1>     pusha
+    45 00000092 BA00800B00          <1>     mov edx, 0xb8000
+    46 00000097 B40F                <1>     mov ah, 0x0f
+    47                              <1> 
+    48                              <1>     protected_print_loop:
+    49 00000099 8A06                <1>         mov al, [esi]
+    50 0000009B 3C00                <1>         cmp al, 0
+    51 0000009D 740B                <1>         je protected_print_ret
+    52                              <1> 
+    53 0000009F 668902              <1>         mov [edx], ax
+    54 000000A2 83C202              <1>         add edx, 2
+    55 000000A5 83C601              <1>         add esi, 1
+    56                              <1>         
+    57 000000A8 EBEF                <1>         jmp protected_print_loop
+    58                              <1> 
+    59                              <1>     protected_print_ret:
+    60 000000AA 61                  <1>         popa
+    61 000000AB C3                  <1>         ret
+    62                              <1>     
+    41                                  %include "debug.asm"
+    42                              <1> [bits 32]
+    43                              <1> 
+    44                              <1> ; prints debug code stored in al
+    45                              <1> debug:
+    46 000000AC A200800B00          <1>     mov byte [0xb8000], al
+    47 000000B1 C60501800B0020      <1>     mov byte [0xb8001], 0x20
+    48 000000B8 882502800B00        <1>     mov byte [0xb8002], ah
+    49 000000BE C60503800B0020      <1>     mov byte [0xb8003], 0x20
+    50 000000C5 C3                  <1>     ret
+    42                                  %include "cpuid.asm"
+    43                              <1> [bits 32]
+    44                              <1> 
+    45                              <1> check_cpuid:
+    46 000000C6 60                  <1>     pusha
+    47                              <1> 
+    48                              <1> 	; get flags and check if cpuid available
+    49 000000C7 9C                  <1> 	pushfd
+    50 000000C8 58                  <1> 	pop eax
+    51                              <1> 	
+    52 000000C9 89C1                <1> 	mov ecx, eax
+    53                              <1> 
+    54 000000CB 3500002000          <1> 	xor eax, 1 << 21
+    55                              <1> 
+    56 000000D0 50                  <1> 	push eax
+    57 000000D1 9D                  <1> 	popfd
+    58                              <1> 
+    59 000000D2 9C                  <1> 	pushfd
+    60 000000D3 58                  <1> 	pop eax
+    61                              <1> 
+    62 000000D4 31C8                <1> 	xor eax, ecx
+    63 000000D6 741F                <1> 	jz no_lm
+    64                              <1> 	
+    65                              <1>     ; check for long mode instructions
+    66 000000D8 B800000080          <1>     mov eax, 0x8000_0000
+    67 000000DD 0FA2                <1>     cpuid
+    68 000000DF 3D01000080          <1>     cmp eax, 0x8000_0001
+    69 000000E4 7211                <1>     jb no_lm
+    70                              <1> 
+    71                              <1>     ; check if long mode present
+    72 000000E6 B801000080          <1>     mov eax, 0x8000_0001
+    73 000000EB 0FA2                <1>     cpuid
+    74 000000ED F7C200000020        <1>     test edx, 1 << 29
+    75 000000F3 7402                <1>     jz no_lm
+    76                              <1> 
+    77 000000F5 61                  <1> 	popa
+    78                              <1> 
+    79 000000F6 C3                  <1> 	ret
+    80                              <1> 	
+    81                              <1> 	no_lm:
+    82 000000F7 66B82031            <1>     	mov ax, " 1"
+    83 000000FB E8ACFFFFFF          <1>     	call debug
+    84 00000100 EBFE                <1>     	jmp $
+    43                                  %include "enter_long.asm"
+    44                              <1> [bits 32]
+    45                              <1> ; enter long mode
+    46                              <1> ; https://wiki.osdev.org/Setting_Up_Long_Mode#The_Switch_from_Protected_Mode
+    47                              <1> 
+    48                              <1> ; todo read:
+    49                              <1> ; https://stackoverflow.com/questions/25210084/entering-long-mode
+    50                              <1> ; https://wiki.osdev.org/Paging#Enabling
+    51                              <1> ; https://intermezzos.github.io/book/first-edition/paging.html
+    52                              <1> 
+    53                              <1> enter_long:
+    54                              <1> 	; clear 4 * 4096 bytes of memory starting at 0x1000
+    55 00000102 BF00100000          <1>     mov edi, 0x1000
+    56 00000107 0F22DF              <1>     mov cr3, edi ; physical address of the page table
+    57                              <1> 
+    58 0000010A 31C0                <1>     xor eax, eax
+    59 0000010C B900100000          <1>     mov ecx, 4096
+    60 00000111 F3AB                <1>     rep stosd ; move eax to (edi + 4 bytes * counter) ecx times
+    61                              <1>     ; edi is pointing to the last byte cleared so must reset
+    62 00000113 BF00100000          <1>     mov edi, 0x1000
+    63                              <1> 
+    64                              <1> 	; 0x2000 = 2 * 16^3 = 2 * 2^12 = 2 << 12
+    65                              <1> 	; pages are aligned to 4096 bytes, so to get the
+    66                              <1> 	; page address we just need to zero the last 12 bits
+    67                              <1> 	; of the entry
+    68 00000118 C70703200000        <1>     mov dword [edi], 0x2003 ; 2 << 12 | 0b11 <- flags
+    69 0000011E 81C700100000        <1>     add edi, 0x1000 ; 4096
+    70 00000124 C70703300000        <1>     mov dword [edi], 0x3003
+    71 0000012A 81C700100000        <1>     add edi, 0x1000
+    72 00000130 C70703400000        <1>     mov dword [edi], 0x4003
+    73 00000136 81C700100000        <1>     add edi, 0x1000 ; edi = 0x4000
+    74                              <1> 
+    75 0000013C BB03000000          <1>     mov ebx, 0b11 ; flags
+    76 00000141 B900020000          <1>     mov ecx, 512
+    77                              <1>     ; identity map first MB
+    78                              <1>     .set_entry:
+    79 00000146 891F                <1>     mov dword [edi], ebx
+    80 00000148 81C300100000        <1>     add ebx, 0x1000
+    81 0000014E 83C708              <1>     add edi, 8
+    82 00000151 E2F3                <1> 	loop .set_entry
+    83                              <1> 
+    84                              <1> 	; enable physical address extension (4 Mb pages)
+    85 00000153 0F20E0              <1> 	mov eax, cr4
+    86 00000156 83C820              <1> 	or eax, 1 << 5
+    87 00000159 0F22E0              <1> 	mov cr4, eax
+    88                              <1> 
+    89                              <1> 	; set long mode bit
+    90 0000015C B9800000C0          <1> 	mov ecx, 0xc000_0080
+    91 00000161 0F32                <1> 	rdmsr
+    92 00000163 0D00010000          <1> 	or eax, 1 << 8
+    93 00000168 0F30                <1> 	wrmsr
+    94                              <1> 	
+    95                              <1> 	; set paging
+    96 0000016A 0F20C0              <1> 	mov eax, cr0
+    97 0000016D 0D01000080          <1> 	or eax, 0x80000001
+    98 00000172 0F22C0              <1>     mov cr0, eax
+    99                              <1> 
+   100 00000175 0F0115[9B010000]    <1> 	lgdt [long_gdt.pointer]
+   101                              <1> 
+   102 0000017C EA[A5010000]0800    <1> 	jmp long_gdt.code_desc:init_long
+   103                              <1> 
+   104                              <1> 
+   105                              <1> ; https://intermezzos.github.io/book/first-edition/setting-up-a-gdt.html
+   106                              <1> long_gdt:
+   107                              <1>     .null_desc: equ $ - long_gdt
+   108 00000183 0000000000000000    <1>     dq 0
+   109                              <1>     
+   110                              <1>     .code_desc: equ $ - long_gdt
+   111 0000018B 00000000009A2000    <1>     dq (1 << 53) | (1 << 47) | (1 << 44) | (1 << 43) | (1 << 41)
+   112                              <1>     ; 53 - long mode
+   113                              <1>     ; 47 - present
+   114                              <1>     ; 44 - either code or data
+   115                              <1>     ; 43 - executable
+   116                              <1>     ; 41 - is data writable/is code readable
+   117                              <1>     
+   118                              <1>     .data_desc: equ $ - long_gdt
+   119 00000193 0000000000920000    <1>     dq (1 << 47) | (1 << 44) | (1 << 41)
+   120                              <1>     
+   121                              <1>     .pointer:
+   122 0000019B 1700                <1>     dw $ - long_gdt - 1
+   123 0000019D [8301000000000000]  <1>     dq long_gdt
+   124                              <1> 
+   125                              <1> [bits 64]
+   126                              <1> init_long:
+   127 000001A5 FA                  <1>     cli                           ; Clear the interrupt flag.
+   128 000001A6 66B81000            <1>     mov ax, long_gdt.data_desc            ; Set the A-register to the data descriptor.
+   129 000001AA 8ED8                <1>     mov ds, ax                    ; Set the data segment to the A-register.
+   130 000001AC 8EC0                <1>     mov es, ax                    ; Set the extra segment to the A-register.
+   131 000001AE 8EE0                <1>     mov fs, ax                    ; Set the F-segment to the A-register.
+   132 000001B0 8EE8                <1>     mov gs, ax                    ; Set the G-segment to the A-register.
+   133 000001B2 8ED0                <1>     mov ss, ax                    ; Set the stack segment to the A-register.
+   134 000001B4 E963FEFFFF          <1>     jmp boot_lm
+    44                                  
+    45 000001B9 00<rep 45h>             times 510 - ($-$$) db 0
+    46 000001FE 55AA                    dw 0xaa55  ; 0x55AA, its little endian
