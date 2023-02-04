@@ -37,7 +37,7 @@ boot_lm:
 %include "load_second_stage.asm"
 %include "gdt.asm"
 %include "enter_protected.asm"
-;%include "protected_print.asm"
+%include "protected_print.asm"
 %include "debug.asm"
 %include "cpuid.asm"
 %include "enter_long.asm"

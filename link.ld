@@ -1,21 +1,12 @@
-/* ENTRY(_boot) */
-/* INPUT(boot.o gniazdo-os.o) */
-
 SECTIONS {
     .boot 0x7c00 : {
-		*(.boot.text);
+        boot.o;
     }
 
-    .text 0x8000 : { /* 0x7e00 */
-        *(.text*);
-    }
-    .data : {
-        *(.data* .rodata*);
-	}
-	.rela : {
-		*(.rela*);
-		. = ALIGN(512);
+    .hello_rust 0x7e00 : {
+        scoletite_os.o;
+        . = ALIGN(512);
     } = 0xdeadc0de
 
-	SECOND_STAGE_LENGTH = ((. - ADDR(.text)) >> 9);
+    SECOND_STAGE_LENGTH = ((. - ADDR(._start)) >> 9);
 }
