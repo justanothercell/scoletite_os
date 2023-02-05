@@ -55,7 +55,6 @@ enter_long:
     mov cr0, eax
 
 	lgdt [long_gdt.pointer]
-
 	jmp long_gdt.code_desc:init_long
 
 

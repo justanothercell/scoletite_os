@@ -1,57 +1,44 @@
 [bits 16]
-gdt:
+; GDT - Global Descriptor Table
+; We define a basic flat model in which the sectors overlap and cover all 4GB of addressable memory
+gdt_start:
 
-gdt_null:
-    dq 0x0
+gdt_null: ; The mandatory null descriptor
+	dd 0x0
+	dd 0x0
 
-gdt_code:
-    dw 0xFFFF ; length
-    dw 0x0 ; base 0-15
-    db 0x0 ; base 16-23
-    ; 7 - present flag
-    ; 5-6 - required privelige
-    ; 4 - is either code or data?
-    ; 3 - code or data?
-    ; 2 - is lower privelige allowed to read/exec?
-    ; 1 - read or write?
-    ; 0 - access flag
-    db 0b1001_1010
+gdt_code: ; The code segment descriptor
+	; Base = 0x0, Limit = 0xfffff
+	; 1st flag = (present)1 (privilege)00 (descriptor type)1 -> 1001b
+	; type flag = (code)1 (conforming)0 (readable)1 (accessed)0 -> 1010b
+	; 2rd flag = (granularity)1 (32bit)1 (64bit)0 (avl)0 -> 1100b
+	dw 0xffff		; Limit (bits 0-15)
+	dw 0x0			; Base (bits 0-15)
+	db 0x0			; Base (bits 16-23)
+	db 10011010b 	; 1st flag, type flags
+	db 11001111b	; Second flag, Limit (bits 16-19)
+	db 0x0			; Base (bits 24-31)
 
-    ; 7 - granularity (multiplies segment limit by 4kB)
-    ; 6 - 16 bit or 32 bit?
-    ; 5 - required by intel to be set to 0
-    ; 4 - free to use
-    ; 0-3 - last bits of segment limit
-    db 0b1100_1111
+gdt_data: ; The data segment descriptor
+	; Same as the code segment except for the type flags
+	; type flags = (code)0 (expand down)0 (writeable)1 (accessed)0 -> 0010b
+	dw 0xffff		; Limit (bits 0-15)
+	dw 0x0			; Base (bits 0-15)
+	db 0x0			; Base(bits 16-23)
+	db 10010010b	; 1st flag, type flags(for data)
+	db 11001111b	; Second flag, Limit(bits 16-19)
+	db 0x0			; Base (bits 24-31)
 
-    db 0x0 ; base 24-31
-    
-gdt_data:
-    dw 0xFFFF ; size
-    dw 0x0 ; base 0-15
-    db 0x0 ; base 16-23
-    ; 7 - present flag
-    ; 5-6 - required privelige
-    ; 4 - is either code or data?
-    ; 3 - code or data?
-    ; 2 - is lower privelige allowed to read/exec?
-    ; 1 - read or write?
-    ; 0 - access flag
-    db 0b1001_0010
-
-    ; 7 - granularity (multiplies segment limit by 4kB)
-    ; 6 - 16 bit or 32 bit?
-    ; 5 - required by intel to be set to 0
-    ; 4 - free to use
-    ; 0-3 - last bits of segment limit
-    db 0b1100_1111
-
-    db 0x0 ; base 24-31
-gdt_end:
+gdt_end: ; This is to let the assembler calculate the size of the gdt for the gdt descriptor
 
 gdt_desc:
-    dw gdt_end - gdt - 1
-    dd gdt
+	dw gdt_end - gdt_start - 1		; Size of our GDT, one less than the true size
+	dd gdt_start 					; Start address of our GDT
 
-CODE_SEG equ gdt_code - gdt
-DATA_SEG equ gdt_data - gdt
+
+; Useful constants to put in the segment registers so that the CPU knows what segment we want to use
+; 0x0 for null segment
+; 0x8 for code segment
+; 0x10 for data segment
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start

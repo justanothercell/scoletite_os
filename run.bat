@@ -4,7 +4,7 @@ cd asm
 nasm boot.asm -f elf64 -o boot.o -l boot.hex
 cd ..
 
-ld.lld asm/boot.o --oformat binary -e init -o img.bin -T link.ld
+ld.lld asm/boot.o target/scoletite_os.o --oformat binary -e init -o img.bin -T link.ld
 
 qemu-system-x86_64 -drive format=raw,file=img.bin
 
