@@ -5,12 +5,10 @@ extern SECOND_STAGE_LENGTH
 global _boot
 
 _boot:
-    mov [BOOT_DRIVE], dl    ; store boot drive for later
-
     mov bp, 0x9000			; setup the stack
     mov sp, bp
 
-    ; print messages
+    ; print
     mov bx, MSG_REAL_MODE
     call print_string
 
@@ -23,34 +21,31 @@ _boot:
     sti
 
 	call load_second_stage
+
+	; print
+    mov bx, MSG_SECOND_STAGE_LOADED
+    call print_string
+
 	jmp enter_protected
 
 
 [bits 32]
 boot_pm:
-    call check_cpuid
-    jmp enter_long
-
-
-[bits 64]
-
-boot_lm:
+    mov bx, MSG_START_KERNEL
+    call print_string_pm
     jmp _start
 loop_end:
     jmp loop_end
 
 %include "print.asm"
 %include "gdt.asm"
-%include "cpuid.asm"
-%include "debug.asm"
 %include "enter_protected.asm"
 %include "load_second_stage.asm"
-%include "enter_long.asm"
 
-BOOT_DRIVE db 0 ; gets set at very beginning
-MSG_REAL_MODE db "16", 0
-MSG_PM db "32", 0
-MSG_64 db "64", 0
+MSG_REAL_MODE db "16 bit real mode", 13, 10, 0
+MSG_SECOND_STAGE_LOADED db "second stage loaded", 13, 10, 0
+MSG_PM db "32 bit private mode", 0
+MSG_START_KERNEL db "starting kernel...", 0
 
 times 510 - ($-$$) db 0
 dw 0xaa55  ; 0x55AA, its little endian

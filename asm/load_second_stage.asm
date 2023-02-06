@@ -30,4 +30,4 @@ load_second_stage:
         mov ah, 0xe
         mov al, "e"
         int 0x10
-        jmp $
+        hlt

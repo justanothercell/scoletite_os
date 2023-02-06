@@ -12,8 +12,6 @@ enter_protected:
 
 [bits 32]
 init_protected:
-        lllll:
-                jmp lllll
     mov ax, DATA_SEG 	; Now that we are in pm, old segments are meaningless and we must
     					; point our segment registers to the data segment we defined in the GDT
     mov ds, ax
