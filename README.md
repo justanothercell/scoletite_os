@@ -12,7 +12,7 @@ Currently prints out a greeting in 16 bit text mode and 10x "OK" in 64 bit vga m
 ## Tools / Setup Steps
 - [QEMU](https://www.qemu.org) VM
 - [NASM](https://www.nasm.us/) assembler
-- lld (llvm's version of ld, but ld workaswell)
+- lld (llvm's version of ld, but ld works as well)
 - [Hexdump](https://gist.github.com/DragonFIghter603/37a95b3f1f87d23d5410bfabf05a867b) self created, optional to view image and can be replaced by any real tool
 
 
