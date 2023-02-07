@@ -12,7 +12,7 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let mut vga_buffer = 0xb8000 as *mut u32;
+    let vga_buffer = 0xb8000 as *mut u32;
     for i in 0..10 {
         unsafe {
             *vga_buffer.offset(i * 2) = 0x2f4b2f4f;
