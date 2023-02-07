@@ -4,6 +4,8 @@ A x86-64 Kernel/OS
 ## ATTENTION
 This is probably only compilable on 64-bit systems 
 due to rust's core crate having problems with transpiling.
+You might want to try [xargo](https://github.com/japaric/xargo) which i did not end up using but
+claims to be able to cross compile rust core.
 
 ## Build & Run
 see [run.bat](run.bat)
