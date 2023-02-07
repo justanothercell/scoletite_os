@@ -1,6 +1,10 @@
 # Scoletite OS
 A x86-64 Kernel/OS
 
+## ATTENTION
+This is probably only compilable on 64-bit systems 
+due to rust's core crate having problems with transpiling.
+
 ## Build & Run
 see [run.bat](run.bat)
 
