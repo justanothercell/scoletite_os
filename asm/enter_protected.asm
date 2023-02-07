@@ -27,4 +27,5 @@ init_protected:
     ; print message
     mov bx, MSG_PM
     call print_string_pm
+
     jmp boot_pm

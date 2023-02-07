@@ -8,7 +8,7 @@ cargo rustc -Z build-std=core --target target.json --release -- --emit obj=targe
 
 del img.bin
 
-ld.lld asm/boot.o target/scoletite_os.o -T link.ld --oformat binary -o img.bin
+ld.lld asm/boot.o target/scoletite_os.o -T link.ld --oformat binary -o img.bin -Map=map.map
 
 qemu-system-x86_64 -drive format=raw,file=img.bin
 

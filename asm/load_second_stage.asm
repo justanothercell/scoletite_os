@@ -22,7 +22,11 @@ load_second_stage:
 
     cmp al, bl
     jne load_second_error
-        
+
+    ; print
+    mov bx, MSG_SECOND_STAGE_LOADED
+    call print_string
+
     popa
     ret
 
