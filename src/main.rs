@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use core::arch::asm;
 use core::panic::PanicInfo;
 
 #[panic_handler]
@@ -12,6 +13,14 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    let mut vga_buffer = 0xb8000 as *mut u32;
+    for i in 0..10 {
+        unsafe {
+            *vga_buffer.offset(i * 2) = 0x2f4b2f4f;
+        }
+    }
+
+    /*
     let vga_buffer = 0xb8000 as *mut u8;
     /*
     for (i, &byte) in HELLO.iter().enumerate() {
@@ -33,5 +42,8 @@ pub extern "C" fn _start() -> ! {
         *vga_buffer.offset(2 * 2) = b'!';
         *vga_buffer.offset(2 * 2 + 1) = 0xb;
     }
+    loop {}
+
+     */
     loop {}
 }

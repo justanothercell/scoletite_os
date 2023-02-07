@@ -1,29 +1,51 @@
-[bits 16]    ; use 16 bits
+[bits 16]
 
-init:
-    mov si, msg    ; loads the address of "msg" into SI register
-    mov ah, 0x0e   ; sets AH to 0xe (function teletype)
-print_char:
-    lodsb          ; loads the current byte from SI into AL and increments the address in SI
-    cmp al, 0      ; compares AL to zero
-    je done        ; if AL == 0, jump to "done"
-    int 0x10       ; print to screen using function 0xe of interrupt 0x10
-    jmp print_char ; repeat with next byte
-done:
-    mov al, 'H'
-    int 0x10
-    mov al, 'e'
-    int 0x10
-    mov al, 'l'
-    int 0x10
-    mov al, 'l'
-    int 0x10
-    mov al, 'o'
-    int 0x10
+extern SECOND_STAGE_LENGTH
+global _boot
 
-    hlt            ; stop execution
+_boot:
+    mov bp, 0x9000			; setup the stack
+    mov sp, bp
 
-msg: db "Hello", 0 ; we need to explicitely put the zero byte here
+    mov bx, MSG_RM
+    call print_string
 
-times 510-($-$$) db 0           ; fill the output file with zeroes until 510 bytes are full
-dw 0xaa55                       ; magic number that tells the BIOS this is bootable
+    hlt
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov ss, ax
+    mov ax, 0x9000
+    mov sp, ax
+    sti
+
+	call load_second_stage
+
+    mov bx, MSG_SECOND_STAGE_LOADED
+    call print_string
+
+	jmp enter_protected
+
+
+[bits 32]
+boot_pm:
+    jmp enter_long
+[bits 64]
+boot_lm:
+    extern _start
+    jmp _start
+loop_end:
+    jmp loop_end
+
+%include "print.asm"
+%include "gdt.asm"
+%include "load_second_stage.asm"
+%include "enter_protected.asm"
+%include "enter_long_mode.asm"
+
+MSG_RM db "hello 16 bit real mode!", 13, 10, 0
+MSG_SECOND_STAGE_LOADED db "loaded second stage", 13, 10, 0
+MSG_PM db "32 bit private mode", 0
+
+times 510 - ($-$$) db 0
+dw 0xaa55  ; 0x55AA, its little endian
