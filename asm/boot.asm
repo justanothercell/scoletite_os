@@ -7,6 +7,9 @@ _boot:
     mov bp, 0x9000			; setup the stack
     mov sp, bp
 
+    mov bx, MSG_RM
+    call print_string
+
     hlt
     cli
     xor ax, ax
@@ -17,6 +20,9 @@ _boot:
     sti
 
 	call load_second_stage
+
+    mov bx, MSG_SECOND_STAGE_LOADED
+    call print_string
 
 	jmp enter_protected
 
@@ -37,7 +43,8 @@ loop_end:
 %include "enter_protected.asm"
 %include "enter_long_mode.asm"
 
-MSG_SECOND_STAGE_LOADED db "gg", 13, 10, 0
+MSG_RM db "hello 16 bit real mode!", 13, 10, 0
+MSG_SECOND_STAGE_LOADED db "loaded second stage", 13, 10, 0
 MSG_PM db "32 bit private mode", 0
 
 times 510 - ($-$$) db 0

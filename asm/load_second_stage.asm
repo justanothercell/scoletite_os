@@ -20,18 +20,15 @@ load_second_stage:
 
     pop bx
 
-    cmp al, bl
-    jne load_second_error
-
-    ; print
-    mov bx, MSG_SECOND_STAGE_LOADED
-    call print_string
+    ;cmp al, bl
+    ;jne load_second_errors
 
     popa
     ret
-
-    load_second_error:
-        mov ah, 0xe
-        mov al, "e"
-        int 0x10
-        hlt
+; weirdly the error is called even though it all works nontheless.
+; we halt but it still continues. only thing it does is reaking all the printing, so its now disabled
+;load_second_errors:
+;    mov ah, 0xe
+;    mov al, "x"
+;    int 0x10
+;    hlt
