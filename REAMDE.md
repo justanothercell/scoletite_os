@@ -6,6 +6,9 @@ see [run.bat](run.bat)
 
 most if not all command should be a 1:1 replacement for unix systems
 
+## Status
+Currently prints out a greeting in 16 bit text mode and 10x "OK" in 64 bit vga mode
+
 ## Tools / Setup Steps
 - [QEMU](https://www.qemu.org) VM
 - [NASM](https://www.nasm.us/) assembler
