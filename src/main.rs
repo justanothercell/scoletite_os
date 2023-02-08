@@ -1,24 +1,31 @@
+#![feature(lang_items, core_intrinsics)]
+#![feature(const_mut_refs)]
 #![no_std]
 #![no_main]
 
+mod internal;
+
 use core::panic::PanicInfo;
+use crate::internal::io::console::{console, debug_alive_ok};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 
-// static HELLO: &[u8] = b"Hello World!!!!";
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u32;
-    for i in 0..10 {
-        unsafe {
-            *vga_buffer.offset(i * 2) = 0x2f4b2f4f;
-        }
-    }
+    debug_alive_ok(b'A');
+    debug_alive_ok(b'B');
+    console().println("Hello world!");
+    debug_alive_ok(b'C');
+    loop {}
+    // console().println("Hello world!");
 
+    console().println("Welcome to scoletite OS!");
+    //printer.write_fmt();
+    //write!(printer, "foo: {}", 1);
     /*
     let vga_buffer = 0xb8000 as *mut u8;
     /*

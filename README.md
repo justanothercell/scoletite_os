@@ -8,12 +8,7 @@ You might want to try [xargo](https://github.com/japaric/xargo) which i did not 
 claims to be able to cross compile rust core.
 
 ## Build & Run
-see [run.bat](run.bat)
-
-most if not all command should be a 1:1 replacement for unix systems
-
-## Status
-Currently prints out a greeting in 16 bit text mode and 10x "OK" in 64 bit vga mode
+see [run.bat](run.bat) or [run.sh](run.sh) respectively
 
 ## Tools / Setup Steps
 - [QEMU](https://www.qemu.org) VM

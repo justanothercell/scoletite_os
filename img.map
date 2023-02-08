@@ -28,18 +28,26 @@
             7d88             7d88        0     1                 MSG_RM
             7da2             7da2        0     1                 MSG_SECOND_STAGE_LOADED
             7db8             7db8        0     1                 MSG_PM
-            7e00             7e00       82    16 .scoletite_os
+            7e00             7e00      26a    16 .scoletite_os
             7e00             7e00        0     4         target/scoletite_os.o:(.text)
-            7e00             7e00        2    16         target/scoletite_os.o:(.text.rust_begin_unwind)
-            7e00             7e00        2     1                 rust_begin_unwind
-            7e10             7e10       72    16         target/scoletite_os.o:(.text._start)
-            7e10             7e10       72     1                 _start
-            7e82             7e82        0     1 SECOND_STAGE_LENGTH = ( ( . - ADDR ( .scoletite_os ) ) >> 9 ) + 1
+            7e00             7e00       80    16         target/scoletite_os.o:(.text.memcpy)
+            7e00             7e00       80     1                 memcpy
+            7e80             7e80      10e    16         target/scoletite_os.o:(.text.memmove)
+            7e80             7e80      10e     1                 memmove
+            7f90             7f90       7d    16         target/scoletite_os.o:(.text.memset)
+            7f90             7f90       7d     1                 memset
+            8010             8010       2d    16         target/scoletite_os.o:(.text.memcmp)
+            8010             8010       2d     1                 memcmp
+            8040             8040        2    16         target/scoletite_os.o:(.text.rust_begin_unwind)
+            8040             8040        2     1                 rust_begin_unwind
+            8050             8050       1a    16         target/scoletite_os.o:(.text._start)
+            8050             8050       1a     1                 _start
+            806a             806a        0     1 SECOND_STAGE_LENGTH = ( ( . - ADDR ( .scoletite_os ) ) >> 9 ) + 1
                0                0       2d     1 .comment
                0                0       2d     1         <internal>:(.comment)
-               0                0      4b0     8 .symtab
-               0                0      4b0     8         <internal>:(.symtab)
+               0                0      510     8 .symtab
+               0                0      510     8         <internal>:(.symtab)
                0                0       38     1 .shstrtab
                0                0       38     1         <internal>:(.shstrtab)
-               0                0      21b     1 .strtab
-               0                0      21b     1         <internal>:(.strtab)
+               0                0      238     1 .strtab
+               0                0      238     1         <internal>:(.strtab)
